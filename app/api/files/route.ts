@@ -14,9 +14,11 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Pinata
-    const upload = await pinata.upload.file(buffer).addMetadata({
-      name: file.name,
+    // Upload to Pinata - using the correct method
+    // @ts-ignore - TypeScript definition issue
+    const upload = await pinata.upload.file(buffer, {
+      filename: file.name,
+      contentType: file.type || 'application/octet-stream'
     });
 
     // Construct the URL
