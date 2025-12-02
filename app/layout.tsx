@@ -5,7 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 import { headers } from 'next/headers' 
-import ContextProvider from '@/components/providers'
+import Footer from '@/components/Footer'
+import { ClerkProvider } from '@/components/ClerkProvider'
 
 export const metadata: Metadata = {
   title: 'NFT Mining App',
@@ -22,10 +23,17 @@ export default async function RootLayout({
   const cookies = headersObj.get('cookie')
 
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <ContextProvider cookies={cookies}>{children}</ContextProvider>
-      </body>
-    </html>
+    <ClerkProvider>
+      <html lang="en">
+        <body className={inter.className}>
+            <div className="flex flex-col min-h-screen">
+              <main className="grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
+        </body>
+      </html>
+    </ClerkProvider>
   )
 }

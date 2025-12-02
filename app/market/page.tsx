@@ -1,28 +1,75 @@
 "use client";
 
 import { useState } from "react";
-import Walletconnectbtn from "@/ui/Walletconnectbtn";
+import WalletConnectButton from "@/ui/Walletconnectbtn";
+import { useUser } from "@clerk/nextjs";
+import { SignInButton, SignedIn, SignedOut } from "@clerk/nextjs";
 
 export default function MarketPage() {
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("recent");
+  const [selectedNFT, setSelectedNFT] = useState<number | null>(null);
+  const { user, isLoaded } = useUser();
+
+  // Function to handle purchase action
+  const handlePurchase = (itemId: number) => {
+    if (!user) {
+      alert("Please sign in to purchase NFTs");
+      return;
+    }
+    // Purchase logic would go here
+    alert(`Purchase initiated for NFT #${itemId}!`);
+    setSelectedNFT(null); // Close the modal after purchase
+  };
+
+  // Mock NFT data
+  const nfts = [
+    { id: 1, name: "Cosmic Dreams #1", price: "0.5", creator: "CryptoArtist", likes: 24 },
+    { id: 2, name: "Digital Waves #2", price: "1.2", creator: "NFTMaster", likes: 42 },
+    { id: 3, name: "Neon Future #3", price: "0.8", creator: "PixelPro", likes: 18 },
+    { id: 4, name: "Abstract Vision #4", price: "2.5", creator: "ArtGenius", likes: 67 },
+    { id: 5, name: "Cyber Punk #5", price: "1.7", creator: "FutureCreator", likes: 35 },
+    { id: 6, name: "Virtual Reality #6", price: "3.1", creator: "MetaArtist", likes: 89 },
+    { id: 7, name: "Quantum Art #7", price: "0.9", creator: "PhysicsNFT", likes: 23 },
+    { id: 8, name: "Holographic #8", price: "1.5", creator: "LightMaker", likes: 56 }
+  ];
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen bg-linear-to-br from-gray-900 to-black text-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500 mx-auto"></div>
+          <p className="mt-4">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black text-white">
+    <div className="min-h-screen bg-linear-to-br from-gray-900 to-black text-white">
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <header className="flex justify-between items-center py-6 mb-8">
-          <div className="text-2xl font-bold bg-gradient-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
+          <div className="text-2xl font-bold bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
             NFTMarket
           </div>
           <nav className="hidden md:flex space-x-8">
             <a href="/" className="hover:text-purple-400 transition-colors">Home</a>
             <a href="/market" className="hover:text-purple-400 transition-colors">Marketplace</a>
             <a href="/mint" className="hover:text-purple-400 transition-colors">Create</a>
-            <a href="#" className="hover:text-purple-400 transition-colors">Activity</a>
+            <a href="/activity" className="hover:text-purple-400 transition-colors">Activity</a>
           </nav>
           <div className="flex items-center space-x-4">
-            <Walletconnectbtn />
+            <SignedOut>
+              <SignInButton mode="modal">
+                <button className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105">
+                  Sign In
+                </button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <WalletConnectButton />
+            </SignedIn>
           </div>
         </header>
 
@@ -76,58 +123,29 @@ export default function MarketPage() {
             </select>
           </div>
 
-          {/* Featured Collections */}
-          <section className="mb-16">
-            <h2 className="text-3xl font-bold mb-10">Featured Collections</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((item) => (
-                <div key={item} className="bg-black/30 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-800 hover:border-purple-500 transition-all group">
-                  <div className="h-60 bg-gradient-to-br from-purple-900/50 to-pink-900/50 flex items-center justify-center">
-                    <div className="text-5xl font-bold text-purple-400/20">NFT</div>
-                  </div>
-                  <div className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-bold text-lg">Collection #{item}</h3>
-                        <p className="text-gray-400 text-sm">by Creator Name</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-gray-400 text-sm">Floor</div>
-                        <div className="font-bold">0.{item * 5} ETH</div>
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <div>
-                        <div className="text-gray-400">Volume</div>
-                        <div className="font-bold">{item * 12.5} ETH</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400">Items</div>
-                        <div className="font-bold">{item * 1234}</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
           {/* Trending NFTs */}
           <section className="mb-16">
             <h2 className="text-3xl font-bold mb-10">Trending NFTs</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map((item) => (
-                <div key={item} className="bg-black/30 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-800 hover:border-purple-500 transition-all group">
-                  <div className="aspect-square bg-gradient-to-br from-purple-900/30 to-pink-900/30 flex items-center justify-center">
-                    <div className="text-3xl font-bold text-purple-400/20">NFT</div>
+              {nfts.map((nft) => (
+                <div 
+                  key={nft.id} 
+                  className="bg-black/30 backdrop-blur-sm rounded-xl overflow-hidden border border-gray-800 hover:border-purple-500 transition-all group cursor-pointer"
+                  onClick={() => setSelectedNFT(nft.id)}
+                >
+                  <div className="aspect-square bg-linear-to-br from-purple-900/30 to-pink-900/30 flex items-center justify-center">
+                    <div className="text-3xl font-bold text-purple-400/20">NFT #{nft.id}</div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-bold truncate">Amazing Digital Art #{item}</h3>
+                    <h3 className="font-bold truncate">{nft.name}</h3>
                     <div className="flex justify-between items-center mt-2">
-                      <div className="text-sm text-gray-400">0.{item} ETH</div>
-                      <button className="text-xs bg-purple-600 hover:bg-purple-700 px-2 py-1 rounded">
-                        Buy Now
-                      </button>
+                      <div className="text-sm text-gray-400">{nft.price} ETH</div>
+                      <div className="flex items-center text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {nft.likes}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -135,26 +153,89 @@ export default function MarketPage() {
             </div>
           </section>
 
-          {/* Top Creators */}
-          <section>
-            <h2 className="text-3xl font-bold mb-10">Top Creators</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((item) => (
-                <div key={item} className="bg-black/30 backdrop-blur-sm rounded-xl p-6 border border-gray-800 hover:border-purple-500 transition-all text-center">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center mx-auto mb-4">
-                    <span className="text-xl font-bold">C{item}</span>
+          {/* NFT Detail Modal */}
+          {selectedNFT !== null && (
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+              <div className="bg-linear-to-br from-gray-900 to-black border border-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex justify-between items-start mb-6">
+                    <h2 className="text-2xl font-bold">NFT Details</h2>
+                    <button 
+                      onClick={() => setSelectedNFT(null)}
+                      className="text-gray-400 hover:text-white"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </div>
-                  <h3 className="font-bold">Creator #{item}</h3>
-                  <div className="text-purple-400 text-sm mt-1">0.{item * 5} ETH earned</div>
-                  <button className="mt-4 w-full py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors">
-                    Follow
-                  </button>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="aspect-square bg-linear-to-br from-purple-900/30 to-pink-900/30 rounded-xl flex items-center justify-center">
+                      <div className="text-5xl font-bold text-purple-400/20">NFT #{selectedNFT}</div>
+                    </div>
+                    
+                    <div>
+                      <h3 className="text-2xl font-bold mb-2">Amazing Digital Art #{selectedNFT}</h3>
+                      <p className="text-gray-400 mb-6">Created by a talented digital artist using advanced generative techniques.</p>
+                      
+                      <div className="space-y-4 mb-6">
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Owner</span>
+                          <span className="font-mono text-sm">0x1234...5678</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Collection</span>
+                          <span>Genesis Collection</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-gray-400">Token ID</span>
+                          <span>#{selectedNFT}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-between items-center mb-6">
+                        <div>
+                          <div className="text-gray-400">Current Price</div>
+                          <div className="text-2xl font-bold">{nfts.find(n => n.id === selectedNFT)?.price} ETH</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-gray-400">Highest Bid</div>
+                          <div className="font-bold">0.{selectedNFT + 2} ETH</div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex gap-3">
+                        {user ? (
+                          <>
+                            <button
+                              onClick={() => handlePurchase(selectedNFT)}
+                              className="flex-1 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                            >
+                              Buy Now
+                            </button>
+                            <button className="px-6 py-3 border border-gray-700 rounded-lg hover:bg-gray-800 transition-colors">
+                              Make Offer
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => alert("Please sign in to purchase NFTs")}
+                            className="flex-1 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-lg transition-all"
+                          >
+                            Sign In to Buy
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              ))}
+              </div>
             </div>
-          </section>
+          )}
         </div>
       </div>
     </div>
   );
 }
+
