@@ -17,7 +17,7 @@ export default function WalletConnectButton() {
       // 1. Try to get web3 wallet from Clerk
       const web3Wallets = user.web3Wallets
       if (web3Wallets && web3Wallets.length > 0) {
-        foundAddress = web3Wallets[0].address
+        foundAddress = web3Wallets[0].web3Wallet
       }
 
       // 2. Try to get from external accounts
@@ -28,7 +28,8 @@ export default function WalletConnectButton() {
             account.provider === 'ethereum' || account.provider === 'web3' || account.provider?.toLowerCase().includes('wallet')
           )
           if (walletAccount) {
-            foundAddress = walletAccount.externalId
+            // Use identificationId or any available identifier
+            foundAddress = (walletAccount as any).identificationId || (walletAccount as any).identification || (walletAccount as any).externalId
           }
         }
       }

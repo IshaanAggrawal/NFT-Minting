@@ -22,28 +22,30 @@ export async function POST(request: Request) {
       )
     }
     
-    // Check if wallet is already linked to another user
-    const existingUsers = await clerkClient.users.getUserList({
-      externalId: [`ethereum:${walletAddress}`]
-    })
+    // Get clerk client instance
+    const clerk = await clerkClient()
     
-    if (existingUsers.data.length > 0 && existingUsers.data[0].id !== user.id) {
+    // Store wallet address in user metadata
+    const currentMetadata = user.publicMetadata as any || {}
+    const linkedWallets = currentMetadata.linkedWallets || []
+    
+    // Check if wallet is already linked to this user
+    if (linkedWallets.includes(walletAddress)) {
       return NextResponse.json(
-        { error: 'Wallet already linked to another account' },
+        { error: 'Wallet already linked to this account' },
         { status: 409 }
       )
     }
     
-    // Link wallet to user
-    await clerkClient.users.updateUser(user.id, {
-      externalAccounts: [
-        ...(user.externalAccounts || []),
-        {
-          provider: 'ethereum',
-          externalId: walletAddress,
-          verified: true,
-        }
-      ]
+    // Add wallet to metadata
+    linkedWallets.push(walletAddress)
+    
+    // Update user metadata
+    await clerk.users.updateUser(user.id, {
+      publicMetadata: {
+        ...currentMetadata,
+        linkedWallets: linkedWallets
+      }
     })
     
     return NextResponse.json({ 

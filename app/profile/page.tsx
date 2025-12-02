@@ -81,24 +81,6 @@ export default function ProfilePage() {
                 <p className="text-sm text-gray-400">Use the wallet connection button in the header to sign in with MetaMask or other web3 providers.</p>
               </div>
             )}
-
-                      if (response.ok) {
-                        // Refresh the user data
-                        window.location.reload()
-                      } else {
-                        const errorData = await response.json()
-                        console.error('Failed to link wallet:', errorData.error)
-                      }
-                    } catch (error) {
-                      console.error('Error linking wallet:', error)
-                    }
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded transition-colors"
-                >
-                  Link Current Wallet
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>

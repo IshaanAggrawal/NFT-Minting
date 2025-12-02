@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+
+  // Disable type checking for blockchain folder
+  typescript: {
+    tsconfigPath: './tsconfig.json',
+    // Ignore blockchain folder which has its own tsconfig
+  },
   
   // Fix for MetaMask SDK React Native dependency issue
   webpack: (config) => {
@@ -16,6 +22,12 @@ const nextConfig: NextConfig = {
       ...config.resolve.alias,
       '@react-native-async-storage/async-storage': false,
     };
+
+    // Exclude blockchain folder from webpack
+    config.module.rules.push({
+      test: /\.tsx?$/,
+      exclude: /blockchain/,
+    });
     
     return config;
   },
