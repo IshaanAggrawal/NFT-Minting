@@ -1,7 +1,5 @@
 import { currentUser } from '@clerk/nextjs/server'
 import { useUser } from '@clerk/nextjs'
-import { useAccount } from 'wagmi'
-import { ExternalAccountResource } from '@clerk/types'
 
 // Server-side function to get current user with wallet info
 export async function getCurrentUserWithWallet() {
@@ -11,10 +9,9 @@ export async function getCurrentUserWithWallet() {
     return null
   }
   
-  // Extract wallet address from external accounts
-  const walletAddress = user.externalAccounts?.find(
-    (account: any) => account.provider === 'ethereum'
-  )?.externalId || null
+  // Extract wallet address from metadata or external accounts
+  const linkedWallets = (user.publicMetadata as any)?.linkedWallets || []
+  const walletAddress = linkedWallets[0] || null
   
   return {
     id: user.id,
@@ -26,44 +23,6 @@ export async function getCurrentUserWithWallet() {
     walletAddress,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
-  }
-}
-
-// Client-side hook to get user with wallet connection status
-export function useUserWithWallet() {
-  const { user, isLoaded } = useUser()
-  const { address, isConnected, isConnecting } = useAccount()
-  
-  if (!isLoaded) {
-    return { user: null, isLoaded: false, wallet: null }
-  }
-  
-  if (!user) {
-    return { user: null, isLoaded: true, wallet: null }
-  }
-  
-  // Extract wallet address from external accounts
-  const walletAddress = (user.externalAccounts?.find(
-    (account: any) => account.provider === 'ethereum'
-  ) as any)?.externalId || address || null
-  
-  return {
-    isLoaded: true,
-    user: {
-      id: user.id,
-      email: user.emailAddresses[0]?.emailAddress || null,
-      username: user.username || null,
-      firstName: user.firstName || null,
-      lastName: user.lastName || null,
-      imageUrl: user.imageUrl || null,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    },
-    wallet: {
-      address: walletAddress,
-      isConnected: isConnected || !!walletAddress,
-      isConnecting,
-    }
   }
 }
 
