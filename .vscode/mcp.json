@@ -1,0 +1,10 @@
+{
+    "servers": [
+        {
+            "name": "Example Server",
+            "address": "example.com",
+            "port": 25565,
+            "version": "1.16.5"
+        }
+    ]
+}

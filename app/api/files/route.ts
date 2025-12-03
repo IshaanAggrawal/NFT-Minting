@@ -14,15 +14,17 @@ export async function POST(req: Request) {
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
-    // Upload to Pinata - using the correct method
-    // @ts-ignore - TypeScript definition issue
-    const upload = await pinata.upload.file(buffer, {
-      filename: file.name,
-      contentType: file.type || 'application/octet-stream'
-    });
+    // Upload to Pinata using the correct method
+    const upload = await pinata.upload
+      .stream(
+        Buffer.from(await file.arrayBuffer()),
+        {
+          filename: file.name,
+        }
+      );
 
     // Construct the URL
-    const cid = upload.cid;
+    const cid = upload.IpfsHash;
     const gateway = process.env.NEXT_PUBLIC_GATEWAY_URL || "https://gateway.pinata.cloud/ipfs/";
     const fileUrl = `${gateway}${cid}`;
 

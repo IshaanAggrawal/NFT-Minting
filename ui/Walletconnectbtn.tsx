@@ -8,10 +8,19 @@ export default function WalletConnectButton() {
   const { user, isLoaded } = useUser()
   const router = useRouter()
   const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const [isCheckingWallet, setIsCheckingWallet] = useState(true)
 
   // Get wallet address from various sources
   useEffect(() => {
-    if (isLoaded && user) {
+    const checkWallet = async () => {
+      setIsCheckingWallet(true)
+      
+      if (!isLoaded || !user) {
+        setWalletAddress(null)
+        setIsCheckingWallet(false)
+        return
+      }
+
       let foundAddress: string | null = null
 
       // 1. Try to get web3 wallet from Clerk
@@ -20,7 +29,7 @@ export default function WalletConnectButton() {
         foundAddress = web3Wallets[0].web3Wallet
       }
 
-      // 2. Try to get from external accounts
+      // 2. Try to get from external accounts (wallet provider)
       if (!foundAddress) {
         const externalAccounts = user.externalAccounts
         if (externalAccounts && externalAccounts.length > 0) {
@@ -28,7 +37,6 @@ export default function WalletConnectButton() {
             account.provider === 'ethereum' || account.provider === 'web3' || account.provider?.toLowerCase().includes('wallet')
           )
           if (walletAccount) {
-            // Use identificationId or any available identifier
             foundAddress = (walletAccount as any).identificationId || (walletAccount as any).identification || (walletAccount as any).externalId
           }
         }
@@ -37,30 +45,41 @@ export default function WalletConnectButton() {
       // 3. Try to get from localStorage (MetaMask connection)
       if (!foundAddress && typeof window !== 'undefined') {
         const storedAddress = localStorage.getItem('walletAddress')
-        if (storedAddress) {
+        if (storedAddress && storedAddress.length > 10) {
           foundAddress = storedAddress
         }
       }
 
       // 4. Try to get from window.ethereum (if MetaMask is connected)
       if (!foundAddress && typeof window !== 'undefined' && (window as any).ethereum) {
-        const accounts = (window as any).ethereum.selectedAddress
-        if (accounts) {
-          foundAddress = accounts
-          localStorage.setItem('walletAddress', accounts)
+        try {
+          const accounts = (window as any).ethereum.selectedAddress
+          if (accounts && accounts.length > 0) {
+            foundAddress = accounts
+            localStorage.setItem('walletAddress', accounts)
+          }
+        } catch (err) {
+          console.log('Wallet check error:', err)
         }
       }
 
-      // 5. Fallback to email if no wallet found
-      if (!foundAddress && user.emailAddresses && user.emailAddresses.length > 0) {
-        const email = user.emailAddresses[0].emailAddress
-        foundAddress = `${email.split('@')[0].slice(0, 6)}...`
+      // 5. Only fallback to email if user explicitly has ONLY google signin (no wallet)
+      // Don't show email as "connected" for sensitive operations like minting
+      if (!foundAddress) {
+        // Check if user only has Google auth and no wallet
+        const hasGoogleOnly = user.externalAccounts && 
+                            user.externalAccounts.length > 0 &&
+                            user.externalAccounts.every((account: any) => account.provider === 'google')
+        if (hasGoogleOnly) {
+          foundAddress = null // User is signed in but has no wallet
+        }
       }
 
-      if (foundAddress) {
-        setWalletAddress(foundAddress)
-      }
+      setWalletAddress(foundAddress)
+      setIsCheckingWallet(false)
     }
+
+    checkWallet()
   }, [isLoaded, user])
 
   if (!isLoaded) {
@@ -85,12 +104,29 @@ export default function WalletConnectButton() {
     )
   }
 
+  // User is signed in but NO wallet connected
+  if (!isCheckingWallet && !walletAddress) {
+    return (
+      <button 
+        onClick={() => {
+          // Prompt user to connect wallet via MetaMask or add wallet to account
+          alert('Please connect your wallet to access minting features')
+        }}
+        className="bg-linear-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105"
+      >
+        Connect Wallet
+      </button>
+    )
+  }
+
+  // User has wallet connected
   if (walletAddress) {
     return (
       <button 
-        className="bg-linear-to-r from-purple-600 to-pink-600 text-white font-bold py-2 px-6 rounded-full transition-all"
+        title={walletAddress}
+        className="bg-linear-to-r from-green-600 to-emerald-600 text-white font-bold py-2 px-6 rounded-full transition-all"
       >
-        Connected
+        ✓ Connected
       </button>
     )
   }

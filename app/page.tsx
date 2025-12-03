@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Walletconnectbtn from "@/ui/Walletconnectbtn";
-import UserMenuButton from "@/ui/UserMenuButton";
+import Navbar from "@/components/Navbar";
 import LiquidEther from '@/components/LiquidEther';
 import { useUser } from "@clerk/nextjs";
 
@@ -43,25 +42,10 @@ export default function Home() {
 
       {/* Content */}
       <div className="relative z-10">
-        {/* Header */}
-        <header className="flex justify-between items-center p-6">
-          <div className="text-2xl font-bold bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            NFTMarket
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <a href="/" className="hover:text-purple-400 transition-colors">Home</a>
-            <a href="/market" className="hover:text-purple-400 transition-colors">Marketplace</a>
-            <a href="/mint" className="hover:text-purple-400 transition-colors">Create</a>
-            <a href="/activity" className="hover:text-purple-400 transition-colors">Activity</a>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <Walletconnectbtn />
-            <UserMenuButton />
-          </div>
-        </header>
+        <Navbar />
 
         {/* Hero Section */}
-        <section className="container mx-auto px-6 py-20 text-center">
+        <section className="container mx-auto px-6 py-20 pt-40 text-center">
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
             Discover, Collect & Sell <span className="bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">Digital Art</span>
           </h1>

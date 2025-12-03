@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Walletconnectbtn from "@/ui/Walletconnectbtn";
+import Navbar from "@/components/Navbar";
 import { useUser, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function ActivityPage() {
@@ -65,32 +65,8 @@ export default function ActivityPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="flex justify-between items-center py-6 mb-8">
-          <div className="text-2xl font-bold bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            NFTMarket
-          </div>
-          <nav className="hidden md:flex space-x-8">
-            <a href="/" className="hover:text-purple-400 transition-colors">Home</a>
-            <a href="/market" className="hover:text-purple-400 transition-colors">Marketplace</a>
-            <a href="/mint" className="hover:text-purple-400 transition-colors">Create</a>
-            <a href="/activity" className="hover:text-purple-400 transition-colors">Activity</a>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105">
-                  Sign In
-                </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <Walletconnectbtn />
-            </SignedIn>
-          </div>
-        </header>
-
+      <Navbar />
+      <div className="container mx-auto px-4 py-8 pt-30">
         {/* Main Content */}
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">

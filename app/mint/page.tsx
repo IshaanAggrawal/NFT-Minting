@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import Walletconnectbtn from "@/ui/Walletconnectbtn";
+import { useState, useRef, useEffect } from "react";
+import Navbar from "@/components/Navbar";
 import { useUser, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 
 export default function MintPage() {
@@ -17,8 +17,50 @@ export default function MintPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("");
   const [activeTab, setActiveTab] = useState("file");
+  const [hasWallet, setHasWallet] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user, isLoaded } = useUser();
+
+  // Check if user has a connected wallet
+  useEffect(() => {
+    if (isLoaded && user) {
+      let walletFound = false;
+
+      // Check web3 wallets
+      if (user.web3Wallets && user.web3Wallets.length > 0) {
+        walletFound = true;
+      }
+
+      // Check external accounts for wallet
+      if (!walletFound && user.externalAccounts) {
+        walletFound = user.externalAccounts.some((account: any) => 
+          account.provider === 'ethereum' || account.provider === 'web3' || account.provider?.toLowerCase().includes('wallet')
+        );
+      }
+
+      // Check localStorage
+      if (!walletFound && typeof window !== 'undefined') {
+        const storedAddress = localStorage.getItem('walletAddress');
+        if (storedAddress && storedAddress.length > 10) {
+          walletFound = true;
+        }
+      }
+
+      // Check window.ethereum
+      if (!walletFound && typeof window !== 'undefined' && (window as any).ethereum) {
+        try {
+          const account = (window as any).ethereum.selectedAddress;
+          if (account && account.length > 0) {
+            walletFound = true;
+          }
+        } catch (err) {
+          console.log('Wallet check error:', err);
+        }
+      }
+
+      setHasWallet(walletFound);
+    }
+  }, [isLoaded, user]);
 
   // Handle file selection
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,6 +95,11 @@ export default function MintPage() {
 
   // Handle file upload
   const handleUpload = async () => {
+    if (!hasWallet) {
+      setUploadStatus("❌ Please connect your wallet first");
+      return;
+    }
+
     if (!file) {
       setUploadStatus("Please select a file first");
       return;
@@ -76,21 +123,22 @@ export default function MintPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Upload failed");
+        const errorData = await response.json();
+        throw new Error(errorData.details || "Upload failed");
       }
 
       const result = await response.json();
-      setUploadStatus(`File uploaded successfully! IPFS URL: ${result.fileUrl}`);
+      setUploadStatus(`✅ File uploaded successfully! IPFS: ${result.cid}`);
       
       // Here you would typically call your smart contract to mint the NFT
       // For now, we'll just simulate the process
       setTimeout(() => {
-        setUploadStatus("NFT minted successfully!");
+        setUploadStatus("✅ NFT minted successfully!");
         setIsUploading(false);
       }, 2000);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Upload error:", error);
-      setUploadStatus("Upload failed. Please try again.");
+      setUploadStatus(`❌ Upload failed: ${error.message}`);
       setIsUploading(false);
     }
   };
@@ -125,34 +173,21 @@ export default function MintPage() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-900 to-black text-white">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="flex justify-between items-center py-6 mb-8">
-          <div className="text-2xl font-bold bg-linear-to-r from-purple-500 to-pink-500 bg-clip-text text-transparent">
-            NFTMarket
+      <Navbar />
+      <div className="container mx-auto px-4 py-8 pt-30">
+        <SignedOut>
+          <div className="text-center py-20">
+            <h2 className="text-2xl font-bold mb-4">Sign in to Create NFTs</h2>
+            <SignInButton mode="modal">
+              <button className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-8 rounded-full transition-all transform hover:scale-105">
+                Sign In
+              </button>
+            </SignInButton>
           </div>
-          <nav className="hidden md:flex space-x-8">
-            <a href="/" className="hover:text-purple-400 transition-colors">Home</a>
-            <a href="/market" className="hover:text-purple-400 transition-colors">Marketplace</a>
-            <a href="/mint" className="hover:text-purple-400 transition-colors">Create</a>
-            <a href="/activity" className="hover:text-purple-400 transition-colors">Activity</a>
-          </nav>
-          <div className="flex items-center space-x-4">
-            <SignedOut>
-              <SignInButton mode="modal">
-                <button className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105">
-                  Sign In
-                </button>
-              </SignInButton>
-            </SignedOut>
-            <SignedIn>
-              <Walletconnectbtn />
-            </SignedIn>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <div className="max-w-4xl mx-auto">
+        </SignedOut>
+        <SignedIn>
+          {/* Main Content */}
+          <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold mb-4">Create New NFT</h1>
             <p className="text-gray-400 max-w-2xl mx-auto">
@@ -160,31 +195,25 @@ export default function MintPage() {
             </p>
           </div>
 
-          <SignedOut>
+          {!hasWallet ? (
             <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 text-center">
-              <h2 className="text-2xl font-bold mb-4">Sign In Required</h2>
+              <h2 className="text-2xl font-bold mb-4">🔗 Connect Your Wallet</h2>
               <p className="text-gray-400 mb-6">
-                You need to sign in to create and mint NFTs
+                You need to connect a Web3 wallet (MetaMask, etc.) to mint NFTs. 
+                <br />
+                <span className="text-sm text-gray-500 mt-2">You're signed in but no wallet detected.</span>
               </p>
-              <SignInButton mode="modal">
-                <button className="bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105">
-                  Sign In
-                </button>
-              </SignInButton>
+              <a 
+                href="https://metamask.io/download/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-block bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-2 px-6 rounded-full transition-all transform hover:scale-105"
+              >
+                Install MetaMask
+              </a>
             </div>
-          </SignedOut>
-
-          <SignedIn>
-            {!user ? (
-              <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-8 border border-gray-800 text-center">
-                <h2 className="text-2xl font-bold mb-4">Connect Your Wallet</h2>
-                <p className="text-gray-400 mb-6">
-                  You need to connect your wallet to create and mint NFTs
-                </p>
-                <Walletconnectbtn />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          ) : (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Panel - Preview */}
                 <div className="bg-black/30 backdrop-blur-sm rounded-2xl p-6 border border-gray-800">
                   <h2 className="text-xl font-bold mb-6">Preview</h2>
@@ -462,8 +491,8 @@ export default function MintPage() {
                 </div>
               </div>
             )}
-          </SignedIn>
-        </div>
+          </div>
+        </SignedIn>
       </div>
     </div>
   );
