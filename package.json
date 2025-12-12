@@ -14,7 +14,7 @@
     "@openzeppelin/contracts": "^5.4.0",
     "@supabase/supabase-js": "^2.86.0",
     "eslint-config-next": "^15.5.6",
-    "next": "^15.5.6",
+    "next": "15.5.9",
     "next-themes": "^0.4.6",
     "pinata": "^2.5.1",
     "pino-pretty": "^13.1.2",
